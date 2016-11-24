@@ -25,10 +25,12 @@ int closeSocket(int socketfd);
 
 int closeConnection(int conn);
 
-struct socketWrapper {
+struct socketWrapperStruct {
 	int fd;
 	char *buffer;
 	int *connections;
-}
+};
+
+typedef socketWrapperStruct socketWrapper;
 
 #endif 
