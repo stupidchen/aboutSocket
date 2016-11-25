@@ -65,13 +65,39 @@ int sendString(ConnectionWrapper *connection, char *str) {
 
 int recvString(ConnectionWrapper *connection, char *str, int len) {
     ssize_t succLen;
-    succLen = recv(connection->fd, str, len, 0);
+    succLen = recv(connection->fd, str, (size_t)len, 0);
     return (int)succLen;
 }
 
 int sendBinaries(ConnectionWrapper *connection, unsigned char *bytes) {
     //TODO
     return 0;
+}
+
+char *getPeerName(ConnectionWrapper *connection) {
+    struct sockaddr *thisAddr;
+    int addrlen = sizeof(struct sockaddr);
+    getpeername(connection->fd, thisAddr, &addrlen);
+    if (thisAddr->sa_family == AF_INET) {
+        char *ipv4addr = (char *)malloc(sizeof(char) * INET_ADDRSTRLEN);
+        inet_ntop(AF_INET, thisAddr, ipv4addr, INET_ADDRSTRLEN);
+        return ipv4addr;
+    }
+    else {
+        char *ipv6addr = (char *)malloc(sizeof(char) * INET6_ADDRSTRLEN);
+        inet_ntop(AF_INET6, thisAddr, ipv6addr, INET6_ADDRSTRLEN);
+        return ipv6addr;
+    }
+}
+
+char *getHostName(int len) {
+    char *hostname = (char *)malloc(sizeof(char) * len);
+    gethostname(hostname, (size_t)len); 
+    return hostname;
+}
+
+void shutdownConnection(ConnectionWrapper *connection, int status) {
+    shutdown(connection->fd, status);
 }
 
 void closeSocket(SocketWrapper *socket) {

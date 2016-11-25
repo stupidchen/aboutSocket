@@ -17,6 +17,12 @@
 #define DEFAULT_QUEUE 20
 #define DEFAULT_BUFFER_SIZE 1024
 
+#define DEFAULT_HOSTNAME_MAXLEN 20
+
+#define DISALLOW_RECEIVE 0
+#define DISALLOW_SEND 1
+#define DISALLOW_RS 2
+
 struct ConnectionWrapperStruct {
     int fd;
     struct sockaddr address;
@@ -46,6 +52,12 @@ extern int sendString(ConnectionWrapper *connection, char *str);
 extern int recvString(ConnectionWrapper *connection, char *str, int len);
 
 extern int sendBinaries(ConnectionWrapper *connection, unsigned char *bytes);
+
+extern char *getPeerName(ConnectionWrapper *connection);
+
+extern char *getHostName(int len);
+
+void shutdownConnection(ConnectionWrapper *connection, int status);
 
 extern void closeSocket(SocketWrapper *socket); 
 
