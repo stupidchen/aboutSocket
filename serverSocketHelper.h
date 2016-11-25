@@ -35,18 +35,20 @@ typedef struct ConnectionWrapperStruct ConnectionWrapper;
 typedef struct SocketWrapperStruct SocketWrapper;
 
 //init:Get descriptor, bind, listen
-SocketWrapper *initSocket(char *port, int queue);
+extern SocketWrapper *initSocket(char *port, int queue);
 
-ConnectionWrapper *acceptOneConnection(SocketWrapper *socket);
+extern ConnectionWrapper *acceptOneConnection(SocketWrapper *socket);
 
-int acceptConnections(SocketWrapper *socket, int num);
+extern int acceptConnections(SocketWrapper *socket, int num);
 
-int sendString(ConnectionWrapper *connection, char *str);
+extern int sendString(ConnectionWrapper *connection, char *str);
 
-int sendBinaries(ConnectionWrapper *connection, unsigned char *bytes);
+extern int recvString(ConnectionWrapper *connection, char *str, int len);
 
-int closeSocket(SocketWrapper *socket); 
+extern int sendBinaries(ConnectionWrapper *connection, unsigned char *bytes);
 
-int closeConnection(ConnectionWrapper *connection);
+extern void closeSocket(SocketWrapper *socket); 
+
+extern void closeConnection(ConnectionWrapper *connection);
 
 #endif 

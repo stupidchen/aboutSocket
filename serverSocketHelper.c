@@ -53,25 +53,33 @@ ConnectionWrapper *acceptOneConnection(SocketWrapper *socket) {
 }
 
 int acceptConnections(SocketWrapper *socket, int num) {
+    //TODO
     return num;
 }
 
 int sendString(ConnectionWrapper *connection, char *str) {
-    int succLen;
+    ssize_t succLen;
     succLen = send(connection->fd, str, strlen(str), 0);
-	return succLen;
+	return (int)succLen;
 } 
 
+int recvString(ConnectionWrapper *connection, char *str, int len) {
+    ssize_t succLen;
+    succLen = recv(connection->fd, str, len, 0);
+    return (int)succLen;
+}
+
 int sendBinaries(ConnectionWrapper *connection, unsigned char *bytes) {
+    //TODO
     return 0;
 }
 
-int closeSocket(SocketWrapper *socket) {
+void closeSocket(SocketWrapper *socket) {
 	close(socket->fd);
     free(socket);
 }
 
-int closeConnection(ConnectionWrapper *connection) {
+void closeConnection(ConnectionWrapper *connection) {
 	close(connection->fd);
     free(connection);
 }
