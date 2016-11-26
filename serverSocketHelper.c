@@ -74,6 +74,7 @@ int sendBinaries(ConnectionWrapper *connection, unsigned char *bytes) {
     return 0;
 }
 
+//TODO The address is host byte order, but we want network byte order 
 char *getPeerName(ConnectionWrapper *connection) {
     struct sockaddr *thisAddr;
     int addrlen = sizeof(struct sockaddr);

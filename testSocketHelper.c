@@ -18,7 +18,8 @@ int main() {
         printf("New connection.\n Peername: %s\n", peername);
         int t = sendString(newConnection, "Hello");
         int recvLen = recvString(newConnection, buf, RECVSTRLEN);
-        printf("%s\n", buf);
+        printf("%d\n", recvLen);
+        sleep(10);
 
         if (recvLen == 0) break;
     }
