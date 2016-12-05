@@ -22,13 +22,13 @@
 
 #ifdef USE_SELECT
 #define SELECT_STATUS 1
-#elif 
+#else 
 #define SELECT_STATUS 0
 #endif
 
 #ifdef USE_EPOLL
 #define EPOLL_STATUS 1
-#elif
+#else
 #define EPOLL_STATUS 0
 #endif
 
