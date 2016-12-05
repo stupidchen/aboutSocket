@@ -11,17 +11,28 @@ SocketWrapper *initSocket(char *port, int queue) {
 
     getaddrinfo(NULL, port, &hints, &result);
 
+    //TODO Result might have several address, need to bind it all
     int sockfd = socket(result->ai_family, result->ai_socktype, result->ai_protocol);
 
 	if (bind(sockfd, result->ai_addr, result->ai_addrlen) == -1) {
-		perror("bind");
+	    perror("bind");
         return NULL;
 	}
 
 	if (listen(sockfd, queue) == -1) {
-		perror("listen");
+	    perror("listen");
         return NULL;
 	}
+
+    if (SELECT_STATUS) {
+        sw->fs = (fd_set *)malloc(sizeof(fd_set));
+        sw->maxfd = -1;
+        FD_ZERO(sw->fs);
+    }
+
+    if (EPOLL_STATUS) {
+        sw->epollfd = epoll_create(EPOLL_DEFAULT_FDSIZE);
+    }
 
     sw->fd = sockfd;
     sw->connectionNumber = 0;
@@ -110,3 +121,65 @@ void closeConnection(ConnectionWrapper *connection) {
 	close(connection->fd);
     free(connection);
 }
+
+SelectResult *selectReadyConnections(SocketWrapper *socket, struct timeval *timeout) {
+    ConnectionWrapper *tmp, *last;
+
+    FD_ZERO(socket->fs);
+    tmp = socket->connectionHead;
+    while (tmp != NULL) {
+        FD_SET(tmp->fd, socket->fs);
+        tmp = tmp->next;
+    }
+
+    int fd = select(socket->maxfd + 1, socket->fs, socket->fs, 0, timeout);
+
+    if (fd == -1) {
+        return NULL;
+    }
+
+    SelectResult *result = (SelectResult *)malloc(sizeof(SelectResult));
+    result->num = fd;
+
+    if (fd == 0) {
+        return result;
+    }
+
+    tmp = socket->connectionHead;
+    while (tmp != NULL) {
+        if (FD_ISSET(tmp->fd, socket->fs)) {
+            result->num++;
+            
+            if (result->connectionHead == NULL) {
+                result->connectionHead = tmp;
+            }
+            else {
+                last->nextSelect = tmp;
+            }
+            last = tmp;
+        }
+        tmp = tmp->next;
+    }
+    
+    return NULL;
+}
+
+extern void addEpollEvent(SocketWrapper *socket, ConnectionWrapper *connection, EpollEvents *events) {
+    epoll_ctl(socket->epollfd, EPOLL_CTL_ADD, connection->fd, events->events);
+}
+
+extern void deleteEpollEvent(SocketWrapper *socket, ConnectionWrapper *connection, EpollEvents *events) {
+    epoll_ctl(socket->epollfd, EPOLL_CTL_DEL, connection->fd, events->events);
+}
+
+extern void modifyEpollEvent(SocketWrapper *socket, ConnectionWrapper *connection, EpollEvents *events) {
+    epoll_ctl(socket->epollfd, EPOLL_CTL_DEL, connection->fd, events->events);
+}
+
+extern EpollEvents *epollWait(SocketWrapper *socket, int maxevents, int timeout) {
+    EpollEvents *result = (EpollEvents *)malloc(sizeof(EpollEvents));
+    
+    result->num = epoll_wait(socket->epollfd, result->events, maxevents, timeout);
+    return result;
+}
+

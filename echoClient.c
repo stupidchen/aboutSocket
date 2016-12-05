@@ -35,6 +35,7 @@ int main(void) {
 			break;
 		}
 		recv(client_sockfd, recvbuf, sizeof(recvbuf), 0);
+        recvbuf[strlen(recvbuf)] = '\n';
 		fputs(recvbuf, stdout);
 
 		memset(sendbuf, 0, sizeof(sendbuf));
