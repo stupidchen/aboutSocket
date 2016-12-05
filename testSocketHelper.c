@@ -5,7 +5,7 @@
 
 #include "serverSocketHelper.h"
 
-#define RECVSTRLEN 20 
+#define RECVSTRLEN 40 
 
 int main() {
     SocketWrapper *socket;
@@ -45,11 +45,12 @@ int main() {
         }
     }
     else {
+        printf("Into select thread.");
         SelectResult *result = selectReadyConnections(socket, NULL);
         ConnectionWrapper *tmp = result->connectionHead;
         while (tmp != NULL) {
             int recvLen = recvString(tmp, buf, RECVSTRLEN);
-            if (strcmp(buf, "exit") == 0) {
+            if (strcmp(buf, "exit") == 0 || recvLen == 0) {
                 sprintf(str, "Received exit signal.");
                 sendString(tmp, str);
                 closeConnection(tmp);
