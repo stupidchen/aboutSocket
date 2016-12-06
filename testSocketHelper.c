@@ -17,15 +17,15 @@ int main() {
     printf("Hostname: %s\n", hostname);
 
     socket = initSocket(DEFAULT_PORT, DEFAULT_QUEUE);
-/*    newConnection = acceptOneConnection(socket);*/
+    /*    newConnection = acceptOneConnection(socket);*/
     /*char *peername = getPeerName(newConnection);*/
     /*printf("New connection.\n Peername: %s\n", peername);*/
     /*for (;;) {*/
-        /*int t = sendString(newConnection, "Hello");*/
-        /*int recvLen = recvString(newConnection, buf, RECVSTRLEN);*/
-        /*printf("%d\n", recvLen);*/
-        /*sleep(10);*/
-        /*if (recvLen == 0) break;*/
+    /*int t = sendString(newConnection, "Hello");*/
+    /*int recvLen = recvString(newConnection, buf, RECVSTRLEN);*/
+    /*printf("%d\n", recvLen);*/
+    /*sleep(10);*/
+    /*if (recvLen == 0) break;*/
     /*}*/
     /*closeConnection(newConnection);*/
 
@@ -45,19 +45,20 @@ int main() {
         }
     }
     else {
-        printf("Into select thread.");
-        SelectResult *result = selectReadyConnections(socket, NULL);
-        ConnectionWrapper *tmp = result->connectionHead;
-        while (tmp != NULL) {
-            int recvLen = recvString(tmp, buf, RECVSTRLEN);
-            if (strcmp(buf, "exit") == 0 || recvLen == 0) {
-                sprintf(str, "Received exit signal.");
-                sendString(tmp, str);
-                closeConnection(tmp);
-            }
-            else {
-                sprintf(str, "Received %d bytes: %s", recvLen, buf);
-                sendString(tmp, str);
+        for (;;) {
+            SelectResult *result = selectReadyConnections(socket, NULL);
+            ConnectionWrapper *tmp = result->connectionHead;
+            while (tmp != NULL) {
+                int recvLen = recvString(tmp, buf, RECVSTRLEN);
+                if (strcmp(buf, "exit") == 0 || recvLen == 0) {
+                    sprintf(str, "Received exit signal.");
+                    sendString(tmp, str);
+                    closeConnection(tmp);
+                }
+                else {
+                    sprintf(str, "Received %d bytes: %s", recvLen, buf);
+                    sendString(tmp, str);
+                }
             }
         }
     }

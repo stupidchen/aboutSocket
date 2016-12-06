@@ -36,6 +36,8 @@ SocketWrapper *initSocket(char *port, int queue) {
 
     sw->fd = sockfd;
     sw->connectionNumber = 0;
+    sw->connectionHead = NULL;
+    sw->connectionTail = NULL;
 	return sw;
 }
 
@@ -51,21 +53,15 @@ ConnectionWrapper *acceptOneConnection(SocketWrapper *socket) {
     newConnection->fd = tmp;
     newConnection->next = NULL;
     if (socket->connectionHead == NULL) {
-        socket->connectionHead = (ConnectionWrapper *)malloc(sizeof(ConnectionWrapper *));
         socket->connectionHead = newConnection;
         socket->connectionTail = newConnection;
     }
     else {
-        socket->connectionTail->next = (ConnectionWrapper *)malloc(sizeof(ConnectionWrapper *));
+        socket->connectionTail->next = newConnection;
         socket->connectionTail = newConnection;
     }
 
     return newConnection;
-}
-
-int acceptConnections(SocketWrapper *socket, int num) {
-    //TODO
-    return num;
 }
 
 int sendString(ConnectionWrapper *connection, char *str) {
@@ -118,6 +114,7 @@ void closeSocket(SocketWrapper *socket) {
 }
 
 void closeConnection(ConnectionWrapper *connection) {
+    //TODO Delete it in the list
 	close(connection->fd);
     free(connection);
 }
@@ -150,6 +147,7 @@ SelectResult *selectReadyConnections(SocketWrapper *socket, struct timeval *time
         if (FD_ISSET(tmp->fd, socket->fs)) {
             result->num++;
             
+            tmp->nextSelect = NULL;
             if (result->connectionHead == NULL) {
                 result->connectionHead = tmp;
             }
@@ -161,7 +159,7 @@ SelectResult *selectReadyConnections(SocketWrapper *socket, struct timeval *time
         tmp = tmp->next;
     }
     
-    return NULL;
+    return result;
 }
 
 extern void addEpollEvent(SocketWrapper *socket, ConnectionWrapper *connection, EpollEvents *events) {

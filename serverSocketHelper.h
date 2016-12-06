@@ -84,8 +84,6 @@ extern SocketWrapper *initSocket(char *port, int queue);
 
 extern ConnectionWrapper *acceptOneConnection(SocketWrapper *socket);
 
-extern int acceptConnections(SocketWrapper *socket, int num);
-
 extern int sendString(ConnectionWrapper *connection, char *str);
 
 extern int recvString(ConnectionWrapper *connection, char *str, int len);
