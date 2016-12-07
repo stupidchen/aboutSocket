@@ -2,14 +2,36 @@
 #include <unistd.h>
 #include <string.h>
 #include <stdlib.h>
+#include <pthread.h>
 
 #include "serverSocketHelper.h"
 
 #define RECVSTRLEN 40 
 
+struct argStruct {
+    SocketWrapper *socket;
+    pthread_mutex_t *mutex;
+};
+
+typedef struct argStruct arg;
+
+void *acceptConnections(void *args) {
+    arg *tmpArg = (arg *)args;
+    SocketWrapper *socket = tmpArg->socket;
+    ConnectionWrapper *newConnection;
+    char str[RECVSTRLEN * 2];
+
+    for (;;) {
+        pthread_mutex_lock(tmpArg->mutex);
+        newConnection = acceptOneConnection(socket);
+        pthread_mutex_unlock(tmpArg->mutex);
+        sprintf(str, "Connection %d built.", socket->connectionNumber);
+        sendString(newConnection, str);
+    }
+}
+
 int main() {
     SocketWrapper *socket;
-    ConnectionWrapper *newConnection;
     char *buf = (char *)malloc(sizeof(RECVSTRLEN));
 
     char *hostname;
@@ -28,41 +50,32 @@ int main() {
     /*if (recvLen == 0) break;*/
     /*}*/
     /*closeConnection(newConnection);*/
+    pthread_t listenThread;
 
+    arg *tmpArg = (arg *)malloc(sizeof(arg));
+    pthread_mutex_init(tmpArg->mutex, NULL);
+    tmpArg->socket = socket;
+
+    pthread_create(&listenThread, NULL, acceptConnections, tmpArg);
 
     char str[RECVSTRLEN * 2];
-
-    pid_t forkPid = fork();
-    if (forkPid < 0) {
-        perror("Fork error");
-        return -1;
-    }
-    if (forkPid == 0) {
-        for (;;) {
-            newConnection = acceptOneConnection(socket);
-            sprintf(str, "Connection %d built.", socket->connectionNumber);
-            sendString(newConnection, str);
-        }
-    }
-    else {
-        for (;;) {
-            SelectResult *result = selectReadyConnections(socket, NULL);
-            ConnectionWrapper *tmp = result->connectionHead;
-            while (tmp != NULL) {
-                int recvLen = recvString(tmp, buf, RECVSTRLEN);
-                if (strcmp(buf, "exit") == 0 || recvLen == 0) {
-                    sprintf(str, "Received exit signal.");
-                    sendString(tmp, str);
-                    closeConnection(tmp);
-                }
-                else {
-                    sprintf(str, "Received %d bytes: %s", recvLen, buf);
-                    sendString(tmp, str);
-                }
+    
+    for (;;) {
+        pthread_mutex_lock(tmpArg->mutex);
+        SelectResult *result = selectReadyConnections(socket, NULL);
+        pthread_mutex_unlock(tmpArg->mutex);
+        ConnectionWrapper *tmp = result->connectionHead;
+        while (tmp != NULL) {
+            int recvLen = recvString(tmp, buf, RECVSTRLEN);
+            if (strcmp(buf, "exit") == 0 || recvLen == 0) {
+                sprintf(str, "Received exit signal.");
+                sendString(tmp, str);
+                closeConnection(tmp);
+            }
+            else {
+                sprintf(str, "Received %d bytes: %s", recvLen, buf);
+                sendString(tmp, str);
             }
         }
     }
-    closeSocket(socket);
-
-    return 0;
 }
