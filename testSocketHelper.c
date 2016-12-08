@@ -24,11 +24,11 @@ void *acceptConnections(void *args) {
 
     for (;;) {
 //        pthread_mutex_lock(tmpArg->mutex);
-        printf("Start to listen %s\n", str);
+//        printf("Start to listen %s\n", str);
         newConnection = acceptOneConnection(socket);
 //        pthread_mutex_unlock(tmpArg->mutex);
-        sprintf(str, "Connection %d built.", socket->connectionNumber);
-        sendString(newConnection, str);
+        printf("Connection %d built.\n", socket->connectionNumber);
+        //sendString(newConnection, str);
     }
 }
 

@@ -131,7 +131,7 @@ SelectResult *selectReadyConnections(SocketWrapper *socket, struct timeval *time
         tmp = tmp->next;
     }
 
-    int fd = select(socket->maxfd + 1, socket->fs, socket->fs, 0, timeout);
+    int fd = select(socket->maxfd + 1, socket->fs, NULL, 0, timeout);
 
     if (fd == -1) {
         return NULL;
