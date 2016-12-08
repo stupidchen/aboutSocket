@@ -50,7 +50,6 @@ ConnectionWrapper *acceptOneConnection(SocketWrapper *socket) {
         return NULL;
     }
 
-    socket->connectionNumber++;
     newConnection->fd = tmp;
     newConnection->next = NULL;
     if (socket->connectionHead == NULL) {
@@ -61,6 +60,7 @@ ConnectionWrapper *acceptOneConnection(SocketWrapper *socket) {
         socket->connectionTail->next = newConnection;
         socket->connectionTail = newConnection;
     }
+    socket->connectionNumber++;
     if (tmp > socket->maxfd) socket->maxfd = tmp;
 
     return newConnection;

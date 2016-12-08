@@ -83,6 +83,7 @@ int main() {
                 sprintf(str, "Received %d bytes: %s", recvLen, buf);
                 sendString(tmp, str);
             }
+            tmp = tmp->nextSelect;
         }
     }
 }
