@@ -21,10 +21,12 @@ void *acceptConnections(void *args) {
     ConnectionWrapper *newConnection;
     char str[RECVSTRLEN * 2];
 
+
     for (;;) {
-        pthread_mutex_lock(tmpArg->mutex);
+//        pthread_mutex_lock(tmpArg->mutex);
+        printf("Start to listen %s\n", str);
         newConnection = acceptOneConnection(socket);
-        pthread_mutex_unlock(tmpArg->mutex);
+//        pthread_mutex_unlock(tmpArg->mutex);
         sprintf(str, "Connection %d built.", socket->connectionNumber);
         sendString(newConnection, str);
     }
@@ -53,17 +55,22 @@ int main() {
     pthread_t listenThread;
 
     arg *tmpArg = (arg *)malloc(sizeof(arg));
+    tmpArg->mutex = (pthread_mutex_t *)malloc(sizeof(pthread_mutex_t));
     pthread_mutex_init(tmpArg->mutex, NULL);
     tmpArg->socket = socket;
 
     pthread_create(&listenThread, NULL, acceptConnections, tmpArg);
 
     char str[RECVSTRLEN * 2];
+    struct timeval timeout;
     
     for (;;) {
-        pthread_mutex_lock(tmpArg->mutex);
-        SelectResult *result = selectReadyConnections(socket, NULL);
-        pthread_mutex_unlock(tmpArg->mutex);
+        timeout.tv_sec = 3;
+        timeout.tv_usec = 0;
+//        pthread_mutex_lock(tmpArg->mutex);
+        SelectResult *result = selectReadyConnections(socket, &timeout);
+//        pthread_mutex_unlock(tmpArg->mutex);
+        printf("%d connection ready.\n", result->num);
         ConnectionWrapper *tmp = result->connectionHead;
         while (tmp != NULL) {
             int recvLen = recvString(tmp, buf, RECVSTRLEN);

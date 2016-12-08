@@ -26,7 +26,6 @@ SocketWrapper *initSocket(char *port, int queue) {
 
     if (SELECT_STATUS) {
         sw->fs = (fd_set *)malloc(sizeof(fd_set));
-        sw->maxfd = -1;
         FD_ZERO(sw->fs);
     }
 
@@ -35,6 +34,7 @@ SocketWrapper *initSocket(char *port, int queue) {
     }
 
     sw->fd = sockfd;
+    sw->maxfd = -1;
     sw->connectionNumber = 0;
     sw->connectionHead = NULL;
     sw->connectionTail = NULL;
@@ -50,6 +50,7 @@ ConnectionWrapper *acceptOneConnection(SocketWrapper *socket) {
         return NULL;
     }
 
+    socket->connectionNumber++;
     newConnection->fd = tmp;
     newConnection->next = NULL;
     if (socket->connectionHead == NULL) {
@@ -60,6 +61,7 @@ ConnectionWrapper *acceptOneConnection(SocketWrapper *socket) {
         socket->connectionTail->next = newConnection;
         socket->connectionTail = newConnection;
     }
+    if (tmp > socket->maxfd) socket->maxfd = tmp;
 
     return newConnection;
 }
@@ -136,7 +138,8 @@ SelectResult *selectReadyConnections(SocketWrapper *socket, struct timeval *time
     }
 
     SelectResult *result = (SelectResult *)malloc(sizeof(SelectResult));
-    result->num = fd;
+    result->num = 0;
+    result->connectionHead = NULL;
 
     if (fd == 0) {
         return result;
