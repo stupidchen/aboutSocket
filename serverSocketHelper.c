@@ -126,11 +126,16 @@ void closeConnection(ConnectionWrapper *connection) {
     if (connection->last == NULL) {
         connection->socket->connectionHead = connection->next;
     }
+    else {
+        connection->last->next = connection->next;
+    }
+
     if (connection->next == NULL) {
         connection->socket->connectionTail = connection->last;
     }
-    connection->last->next = connection->next;
-    connection->next->last = connection->last;
+    else {
+        connection->next->last = connection->last;
+    }
 
     free(connection);
 }

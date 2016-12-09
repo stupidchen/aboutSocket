@@ -74,6 +74,8 @@ int main() {
             int recvLen = recvString(tmp, buf, RECVSTRLEN);
             if (strcmp(buf, "exit") == 0 || recvLen == 0) {
                 printf("Received exit signal.");
+                sprintf(str, "Bye.");
+                sendString(tmp, str);
                 closeConnection(tmp);
             }
             else {
