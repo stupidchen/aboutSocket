@@ -49,7 +49,7 @@ struct ConnectionWrapperStruct {
     int fd;
     struct sockaddr address;
     socklen_t addrlen;
-    struct ConnectionWrapperStruct *next;
+    struct ConnectionWrapperStruct *next, *last;
     struct ConnectionWrapperStruct *nextSelect;
 };
 

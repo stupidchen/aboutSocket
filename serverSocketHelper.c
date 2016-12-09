@@ -52,11 +52,13 @@ ConnectionWrapper *acceptOneConnection(SocketWrapper *socket) {
 
     newConnection->fd = tmp;
     newConnection->next = NULL;
+    newConnection->last = NULL;
     if (socket->connectionHead == NULL) {
         socket->connectionHead = newConnection;
         socket->connectionTail = newConnection;
     }
     else {
+        newConnection->last = socket->connectionTail;
         socket->connectionTail->next = newConnection;
         socket->connectionTail = newConnection;
     }
@@ -75,6 +77,7 @@ int sendString(ConnectionWrapper *connection, char *str) {
 int recvString(ConnectionWrapper *connection, char *str, int len) {
     ssize_t succLen;
     succLen = recv(connection->fd, str, (size_t)len, 0);
+    str[succLen + 1] = '\0';
     return (int)succLen;
 }
 
@@ -115,9 +118,11 @@ void closeSocket(SocketWrapper *socket) {
     free(socket);
 }
 
+//TODO Check
 void closeConnection(ConnectionWrapper *connection) {
-    //TODO Delete it in the list
 	close(connection->fd);
+    connection->last->next = connection->next;
+    connection->next->last = connection->last;
     free(connection);
 }
 

@@ -19,8 +19,6 @@ void *acceptConnections(void *args) {
     arg *tmpArg = (arg *)args;
     SocketWrapper *socket = tmpArg->socket;
     ConnectionWrapper *newConnection;
-    char str[RECVSTRLEN * 2];
-
 
     for (;;) {
 //        pthread_mutex_lock(tmpArg->mutex);
