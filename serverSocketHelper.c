@@ -34,7 +34,6 @@ SocketWrapper *initSocket(char *port, int queue) {
     }
 
     sw->fd = sockfd;
-    sw->maxfd = -1;
     sw->connectionNumber = 0;
     sw->connectionHead = NULL;
     sw->connectionTail = NULL;
@@ -53,6 +52,7 @@ ConnectionWrapper *acceptOneConnection(SocketWrapper *socket) {
     newConnection->fd = tmp;
     newConnection->next = NULL;
     newConnection->last = NULL;
+    newConnection->socket = socket;
     if (socket->connectionHead == NULL) {
         socket->connectionHead = newConnection;
         socket->connectionTail = newConnection;
@@ -63,7 +63,6 @@ ConnectionWrapper *acceptOneConnection(SocketWrapper *socket) {
         socket->connectionTail = newConnection;
     }
     socket->connectionNumber++;
-    if (tmp > socket->maxfd) socket->maxfd = tmp;
 
     return newConnection;
 }
@@ -121,22 +120,34 @@ void closeSocket(SocketWrapper *socket) {
 //TODO Check
 void closeConnection(ConnectionWrapper *connection) {
 	close(connection->fd);
+
+    connection->socket->connectionNumber--;
+
+    if (connection->last == NULL) {
+        connection->socket->connectionHead = connection->next;
+    }
+    if (connection->next == NULL) {
+        connection->socket->connectionTail = connection->last;
+    }
     connection->last->next = connection->next;
     connection->next->last = connection->last;
+
     free(connection);
 }
 
 SelectResult *selectReadyConnections(SocketWrapper *socket, struct timeval *timeout) {
     ConnectionWrapper *tmp, *last;
+    int maxfd = -1;
 
     FD_ZERO(socket->fs);
     tmp = socket->connectionHead;
     while (tmp != NULL) {
         FD_SET(tmp->fd, socket->fs);
+        if (tmp->fd > maxfd) maxfd = tmp->fd;
         tmp = tmp->next;
     }
 
-    int fd = select(socket->maxfd + 1, socket->fs, NULL, 0, timeout);
+    int fd = select(maxfd + 1, socket->fs, NULL, 0, timeout);
 
     if (fd == -1) {
         return NULL;

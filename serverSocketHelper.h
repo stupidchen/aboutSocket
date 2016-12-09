@@ -51,10 +51,11 @@ struct ConnectionWrapperStruct {
     socklen_t addrlen;
     struct ConnectionWrapperStruct *next, *last;
     struct ConnectionWrapperStruct *nextSelect;
+    struct SocketWrapperStruct *socket;
 };
 
 struct SocketWrapperStruct {
-	int fd, maxfd;
+	int fd;
     int epollfd;
 	struct ConnectionWrapperStruct *connectionHead, *connectionTail;
     int connectionNumber;
