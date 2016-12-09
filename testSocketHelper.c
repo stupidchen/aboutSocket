@@ -73,8 +73,7 @@ int main() {
         while (tmp != NULL) {
             int recvLen = recvString(tmp, buf, RECVSTRLEN);
             if (strcmp(buf, "exit") == 0 || recvLen == 0) {
-                sprintf(str, "Received exit signal.");
-                sendString(tmp, str);
+                printf("Received exit signal.");
                 closeConnection(tmp);
             }
             else {

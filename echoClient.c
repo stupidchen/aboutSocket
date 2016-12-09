@@ -34,8 +34,8 @@ int main(void) {
 		if (strcmp(sendbuf, "exit\n") == 0) {
 			break;
 		}
-		recv(client_sockfd, recvbuf, sizeof(recvbuf), 0);
-        recvbuf[strlen(recvbuf)] = '\n';
+		long long len = recv(client_sockfd, recvbuf, sizeof(recvbuf), 0);
+        recvbuf[len + 1] = '\n';
 		fputs(recvbuf, stdout);
 
 		memset(sendbuf, 0, sizeof(sendbuf));
