@@ -26,11 +26,23 @@ SocketWrapper *initSocket(char *port, int queue) {
 
     if (SELECT_STATUS) {
         sw->fs = (fd_set *)malloc(sizeof(fd_set));
-        FD_ZERO(sw->fs);
+        if (sw->fs == NULL) {
+            perror("Select malloc");
+        }
+        else {
+            FD_ZERO(sw->fs);
+        }
     }
 
     if (EPOLL_STATUS) {
-        sw->epollfd = epoll_create(EPOLL_DEFAULT_FDSIZE);
+        int tmpfd = epoll_create(EPOLL_DEFAULT_FDSIZE);
+        if (tmpfd == -1) {
+            perror("Epoll create");
+        }
+        else {
+            sw->epollfd = tmpfd;
+            addEpollEventByFd(sw, sockfd, createEpollEvent(sw, EPOLLIN));
+        }
     }
 
     sw->fd = sockfd;
@@ -186,22 +198,52 @@ SelectResult *selectReadyConnections(SocketWrapper *socket, struct timeval *time
     return result;
 }
 
-extern void addEpollEvent(SocketWrapper *socket, ConnectionWrapper *connection, EpollEvents *events) {
-    epoll_ctl(socket->epollfd, EPOLL_CTL_ADD, connection->fd, events->events);
+extern EpollEvent *createEpollEvent(void *connection, __uint32_t status) {
+    EpollEvent *event = (EpollEvent *)malloc(sizeof(EpollEvent));
+    event->data.ptr = connection;
+    event->events = status;
+    return event;
 }
 
-extern void deleteEpollEvent(SocketWrapper *socket, ConnectionWrapper *connection, EpollEvents *events) {
-    epoll_ctl(socket->epollfd, EPOLL_CTL_DEL, connection->fd, events->events);
+extern EpollEvent *createEpollEventByFd(int fd,  __uint32_t status) {
+    EpollEvent *event = (EpollEvent *)malloc(sizeof(EpollEvent));
+    event->data.fd = fd;
+    event->events = status;
+    return event;
 }
 
-extern void modifyEpollEvent(SocketWrapper *socket, ConnectionWrapper *connection, EpollEvents *events) {
-    epoll_ctl(socket->epollfd, EPOLL_CTL_DEL, connection->fd, events->events);
+extern EpollEvents *createEpollEvents(unsigned long size) {
+    EpollEvents *newEvents = (EpollEvents *)malloc(sizeof(EpollEvents));
+    newEvents->events = (EpollEvent *)malloc(sizeof(EpollEvent) * size);
+    newEvents->num = 0;
+    return newEvents;
 }
 
-extern EpollEvents *epollWait(SocketWrapper *socket, int maxevents, int timeout) {
-    EpollEvents *result = (EpollEvents *)malloc(sizeof(EpollEvents));
-    
+extern void addEpollEvent(SocketWrapper *socket, ConnectionWrapper *connection, EpollEvent *event) {
+    epoll_ctl(socket->epollfd, EPOLL_CTL_ADD, connection->fd, event);
+}
+
+extern void addEpollEventByFd(SocketWrapper *socket, int fd, EpollEvent *event) {
+    epoll_ctl(socket->epollfd, EPOLL_CTL_ADD, fd, event);
+}
+
+extern void deleteEpollEvent(SocketWrapper *socket, ConnectionWrapper *connection, EpollEvent *event) {
+    epoll_ctl(socket->epollfd, EPOLL_CTL_DEL, connection->fd, event);
+}
+
+extern void deleteEpollEventByFd(SocketWrapper *socket, int fd, EpollEvent *event) {
+    epoll_ctl(socket->epollfd, EPOLL_CTL_DEL, fd, event);
+}
+
+extern void modifyEpollEvent(SocketWrapper *socket, ConnectionWrapper *connection, EpollEvent *event) {
+    epoll_ctl(socket->epollfd, EPOLL_CTL_MOD, connection->fd, event);
+}
+
+extern void modifyEpollEventByFd(SocketWrapper *socket, int fd, EpollEvent *event) {
+    epoll_ctl(socket->epollfd, EPOLL_CTL_MOD, fd, event);
+}
+
+extern void epollWait(SocketWrapper *socket, EpollEvents *result, int maxevents, int timeout) {
     result->num = epoll_wait(socket->epollfd, result->events, maxevents, timeout);
-    return result;
 }
 

@@ -44,6 +44,7 @@
 #define DISALLOW_RS 2
 
 #define EPOLL_DEFAULT_FDSIZE 10000
+#define EPOLL_DEFAULT_MAX_CONCURRENT_CONNECTIONS 100
 
 struct ConnectionWrapperStruct {
     int fd;
@@ -80,6 +81,12 @@ typedef struct SelectResultStruct SelectResult;
 
 typedef struct EpollEventsStruct EpollEvents;
 
+/*struct epoll_event {
+    __uint32_t events; //EPOLLIN, EPOLLOUT, EPOLLPRI, EPOLLERR, EPOLLHUB, EPOLLET, EPOLLONESHOT
+    epoll_data_t data;
+};*/
+typedef struct epoll_event EpollEvent;
+
 //init:Get descriptor, bind, listen
 extern SocketWrapper *initSocket(char *port, int queue);
 
@@ -106,13 +113,27 @@ extern SelectResult *selectReadyConnections(SocketWrapper *socket, struct timeva
 #endif
 
 #ifdef USE_EPOLL
-extern void addEpollEvent(SocketWrapper *socket, ConnectionWrapper *connection, EpollEvents *events);
 
-extern void deleteEpollEvent(SocketWrapper *socket, ConnectionWrapper *connection, EpollEvents *events);
+//EPOLLIN, EPOLLOUT, EPOLLPRI, EPOLLERR, EPOLLHUB, EPOLLET, EPOLLONESHOT
+extern EpollEvent *createEpollEvent(void *connection, __uint32_t status);
 
-extern void modifyEpollEvent(SocketWrapper *socket, ConnectionWrapper *connection, EpollEvents *events);
+extern EpollEvent *createEpollEventByFd(int fd,  __uint32_t status);
 
-extern EpollEvents *epollWait(SocketWrapper *socket, int maxevents, int timeout);
+extern EpollEvents *createEpollEvents(unsigned long size);
+
+extern void addEpollEvent(SocketWrapper *socket, ConnectionWrapper *connection, EpollEvent *event);
+
+extern void addEpollEventByFd(SocketWrapper *socket, int fd, EpollEvent *event);
+
+extern void deleteEpollEvent(SocketWrapper *socket, ConnectionWrapper *connection, EpollEvent *event);
+
+extern void deleteEpollEventByFd(SocketWrapper *socket, int fd, EpollEvent *event);
+
+extern void modifyEpollEvent(SocketWrapper *socket, ConnectionWrapper *connection, EpollEvent *event);
+
+extern void modifyEpollEventByFd(SocketWrapper *socket, int fd, EpollEvent *event);
+
+extern void epollWait(SocketWrapper *socket, EpollEvents *result, int maxevents, int timeout);
 #endif
 
 #endif 
