@@ -24,13 +24,12 @@ void *acceptConnections(void *args) {
 
     int timeout = 1000;
     for (;;) {
-        epollWait(socket, connev, evnum, timeout);
+        epollWait(socket, EPOLL_LISTEN_GROUP, connev, evnum, timeout);
         //        pthread_mutex_lock(tmpArg->mutex);
         //        printf("Start to listen %s\n", str);
         for (int i = 0; i < connev->num; i++) {
-            //TODO
             newConnection = acceptOneConnection(socket);
-            addEpollEvent(socket, newConnection, createEpollEvent(newConnection, EPOLLIN));
+            addEpollEvent(socket, EPOLL_BOARDCAST_GROUP, newConnection, createEpollEvent(newConnection, EPOLLIN));
             printf("Connection %d built.\n", socket->connectionNumber);
         }
         //        pthread_mutex_unlock(tmpArg->mutex);
@@ -76,25 +75,24 @@ int main() {
 //        pthread_mutex_unlock(tmpArg->mutex);
 //        
 //        
-        epollWait(socket, result, EPOLL_DEFAULT_FDSIZE, timeout);   
+        epollWait(socket, EPOLL_BOARDCAST_GROUP , result, EPOLL_DEFAULT_FDSIZE, timeout);   
         printf("%d connection ready.\n", result->num);
         for (int i = 0; i < result->num; i++) {
-
-        }
-        ConnectionWrapper *tmp = result->connectionHead;
-        while (tmp != NULL) {
-            int recvLen = recvString(tmp, buf, RECVSTRLEN);
-            if (strcmp(buf, "exit") == 0 || recvLen == 0) {
-                printf("Received exit signal.");
-                sprintf(str, "Bye.");
-                sendString(tmp, str);
-                closeConnection(tmp);
+            EpollEvent tmp = result->events[i];
+            if (tmp.events & EPOLLIN) {
+                ConnectionWrapper *readyConn = (ConnectionWrapper *)getPtrFromEvent(tmp); 
+                int recvLen = recvString(readyConn, buf, RECVSTRLEN);
+                if (strcmp(buf, "exit") == 0 || recvLen == 0) {
+                    printf("Received exit signal.");
+                    sprintf(str, "Bye.");
+                    sendString(readyConn, str);
+                    closeConnection(readyConn);
+                }
+                else {
+                    sprintf(str, "Received %d bytes: %s", recvLen, buf);
+                    sendString(readyConn, str);
+                }
             }
-            else {
-                sprintf(str, "Received %d bytes: %s", recvLen, buf);
-                sendString(tmp, str);
-            }
-            tmp = tmp->nextSelect;
         }
     }
 }

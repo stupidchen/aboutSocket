@@ -35,13 +35,21 @@ SocketWrapper *initSocket(char *port, int queue) {
     }
 
     if (EPOLL_STATUS) {
-        int tmpfd = epoll_create(EPOLL_DEFAULT_FDSIZE);
-        if (tmpfd == -1) {
+        int tmpfd0 = epoll_create(EPOLL_DEFAULT_FDSIZE);
+        int tmpfd1 = epoll_create(EPOLL_DEFAULT_FDSIZE);
+        
+        if (tmpfd0 == -1 || tmpfd1 == -1) {
             perror("Epoll create");
         }
         else {
-            sw->epollfd = tmpfd;
-            addEpollEventByFd(sw, sockfd, createEpollEvent(sw, EPOLLIN));
+            sw->efdGroupNum = 2;
+            sw->efdMaxGroupNum = EPOLL_DEFAULT_GROUP_NUMBER;
+            sw->efds = (int *)malloc(sizeof(int) * EPOLL_DEFAULT_GROUP_NUMBER);
+            
+            sw->efds[EPOLL_LISTEN_GROUP] = tmpfd0;
+            sw->efds[EPOLL_BOARDCAST_GROUP] = tmpfd1;
+            
+            addEpollEventByFd(sw, EPOLL_LISTEN_GROUP, sockfd, createEpollEvent(sw, EPOLLIN | EPOLLET));
         }
     }
 
@@ -126,10 +134,16 @@ void shutdownConnection(ConnectionWrapper *connection, int status) {
 
 void closeSocket(SocketWrapper *socket) {
 	close(socket->fd);
+    if (EPOLL_STATUS) {
+        for (int i = 0; i < socket->fdGroupNumber; i++) {
+            close(socket->efds[i]);
+        }
+    }
+
     free(socket);
 }
 
-//TODO Check
+//TODO Check, the deletion will affect the link struct
 void closeConnection(ConnectionWrapper *connection) {
 	close(connection->fd);
 
@@ -219,31 +233,38 @@ extern EpollEvents *createEpollEvents(unsigned long size) {
     return newEvents;
 }
 
-extern void addEpollEvent(SocketWrapper *socket, ConnectionWrapper *connection, EpollEvent *event) {
-    epoll_ctl(socket->epollfd, EPOLL_CTL_ADD, connection->fd, event);
+extern void addEpollEvent(SocketWrapper *socket, int group, ConnectionWrapper *connection, EpollEvent *event) {
+    epoll_ctl(socket->efds[group], EPOLL_CTL_ADD, connection->fd, event);
 }
 
-extern void addEpollEventByFd(SocketWrapper *socket, int fd, EpollEvent *event) {
-    epoll_ctl(socket->epollfd, EPOLL_CTL_ADD, fd, event);
+extern void addEpollEventByFd(SocketWrapper *socket, int group, int fd, EpollEvent *event) {
+    epoll_ctl(socket->efds[group], EPOLL_CTL_ADD, fd, event);
 }
 
-extern void deleteEpollEvent(SocketWrapper *socket, ConnectionWrapper *connection, EpollEvent *event) {
-    epoll_ctl(socket->epollfd, EPOLL_CTL_DEL, connection->fd, event);
+extern void deleteEpollEvent(SocketWrapper *socket, int group, ConnectionWrapper *connection, EpollEvent *event) {
+    epoll_ctl(socket->efds[group], EPOLL_CTL_DEL, connection->fd, event);
 }
 
-extern void deleteEpollEventByFd(SocketWrapper *socket, int fd, EpollEvent *event) {
-    epoll_ctl(socket->epollfd, EPOLL_CTL_DEL, fd, event);
+extern void deleteEpollEventByFd(SocketWrapper *socket, int group, int fd, EpollEvent *event) {
+    epoll_ctl(socket->efds[group], EPOLL_CTL_DEL, fd, event);
 }
 
-extern void modifyEpollEvent(SocketWrapper *socket, ConnectionWrapper *connection, EpollEvent *event) {
-    epoll_ctl(socket->epollfd, EPOLL_CTL_MOD, connection->fd, event);
+extern void modifyEpollEvent(SocketWrapper *socket, int group, ConnectionWrapper *connection, EpollEvent *event) {
+    epoll_ctl(socket->efds[group], EPOLL_CTL_MOD, connection->fd, event);
 }
 
-extern void modifyEpollEventByFd(SocketWrapper *socket, int fd, EpollEvent *event) {
-    epoll_ctl(socket->epollfd, EPOLL_CTL_MOD, fd, event);
+extern void modifyEpollEventByFd(SocketWrapper *socket, int group, int fd, EpollEvent *event) {
+    epoll_ctl(socket->efds[group], EPOLL_CTL_MOD, fd, event);
 }
 
-extern void epollWait(SocketWrapper *socket, EpollEvents *result, int maxevents, int timeout) {
-    result->num = epoll_wait(socket->epollfd, result->events, maxevents, timeout);
+extern void epollWait(SocketWrapper *socket, int group, EpollEvents *result, int maxevents, int timeout) {
+    result->num = epoll_wait(socket->efds[group], result->events, maxevents, timeout);
 }
 
+extern int getFdFromEvent(EpollEvent event) {
+    return event.data.fd;
+}
+
+extern void *getPtrFromEvent(EpollEvent event) {
+    return event.data.ptr;
+}

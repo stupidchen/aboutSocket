@@ -46,6 +46,10 @@
 #define EPOLL_DEFAULT_FDSIZE 10000
 #define EPOLL_DEFAULT_MAX_CONCURRENT_CONNECTIONS 100
 
+#define EPOLL_LISTEN_GROUP 0
+#define EPOLL_BOARDCAST_GROUP 1
+#define EPOLL_DEFAULT_GROUP_NUMBER 10
+
 struct ConnectionWrapperStruct {
     int fd;
     struct sockaddr address;
@@ -57,10 +61,17 @@ struct ConnectionWrapperStruct {
 
 struct SocketWrapperStruct {
 	int fd;
-    int epollfd;
+    fd_set *fs;
+    int fdGroupNumber;
+    
+    //For connection wrapper
 	struct ConnectionWrapperStruct *connectionHead, *connectionTail;
     int connectionNumber;
-    fd_set *fs;
+
+    //For epoll fd group
+    int efdGroupNum;
+    int efdMaxGroupNum;
+    int *efds;
 };
 
 struct SelectResultStruct {
@@ -121,19 +132,23 @@ extern EpollEvent *createEpollEventByFd(int fd,  __uint32_t status);
 
 extern EpollEvents *createEpollEvents(unsigned long size);
 
-extern void addEpollEvent(SocketWrapper *socket, ConnectionWrapper *connection, EpollEvent *event);
+extern void addEpollEvent(SocketWrapper *socket, int group, ConnectionWrapper *connection, EpollEvent *event);
 
-extern void addEpollEventByFd(SocketWrapper *socket, int fd, EpollEvent *event);
+extern void addEpollEventByFd(SocketWrapper *socket, int group, int fd, EpollEvent *event);
 
-extern void deleteEpollEvent(SocketWrapper *socket, ConnectionWrapper *connection, EpollEvent *event);
+extern void deleteEpollEvent(SocketWrapper *socket, int group, ConnectionWrapper *connection, EpollEvent *event);
 
-extern void deleteEpollEventByFd(SocketWrapper *socket, int fd, EpollEvent *event);
+extern void deleteEpollEventByFd(SocketWrapper *socket, int group, int fd, EpollEvent *event);
 
-extern void modifyEpollEvent(SocketWrapper *socket, ConnectionWrapper *connection, EpollEvent *event);
+extern void modifyEpollEvent(SocketWrapper *socket, int group, ConnectionWrapper *connection, EpollEvent *event);
 
-extern void modifyEpollEventByFd(SocketWrapper *socket, int fd, EpollEvent *event);
+extern void modifyEpollEventByFd(SocketWrapper *socket, int group, int fd, EpollEvent *event);
 
-extern void epollWait(SocketWrapper *socket, EpollEvents *result, int maxevents, int timeout);
+extern void epollWait(SocketWrapper *socket, int group, EpollEvents *result, int maxevents, int timeout);
+
+extern int getFdFromEvent(EpollEvent event);
+
+extern void *getPtrFromEvent(EpollEvent event);
 #endif
 
 #endif 
