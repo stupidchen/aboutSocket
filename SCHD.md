@@ -28,10 +28,10 @@
 * Add the group of epoll fd(For listen, boardcast or other use)
 * Finish the test program of epoll API;(Still didn't test yet) 
 * Marco stuffs(No necessary to replace it)
-* Count the TODO mark; *--5 TODO*
+* Count the TODO mark; *--2 TODO*
 
 ### Plan
 
 * Epoll fd group manage(Create, delete)
-* Test the test program of epoll API
+* Test the test program of epoll API on puppy
 * Add the change log of whole project

@@ -16,6 +16,8 @@ struct argStruct {
 typedef struct argStruct arg;
 
 void *acceptConnections(void *args) {
+    int i;
+
     arg *tmpArg = (arg *)args;
     SocketWrapper *socket = tmpArg->socket;
     ConnectionWrapper *newConnection;
@@ -27,7 +29,7 @@ void *acceptConnections(void *args) {
         epollWait(socket, EPOLL_LISTEN_GROUP, connev, evnum, timeout);
         //        pthread_mutex_lock(tmpArg->mutex);
         //        printf("Start to listen %s\n", str);
-        for (int i = 0; i < connev->num; i++) {
+        for (i = 0; i < connev->num; i++) {
             newConnection = acceptOneConnection(socket);
             addEpollEvent(socket, EPOLL_BOARDCAST_GROUP, newConnection, createEpollEvent(newConnection, EPOLLIN));
             printf("Connection %d built.\n", socket->connectionNumber);
@@ -38,6 +40,8 @@ void *acceptConnections(void *args) {
 }
 
 int main() {
+    int i;
+
     SocketWrapper *socket;
     char *buf = (char *)malloc(sizeof(RECVSTRLEN));
 
@@ -77,7 +81,7 @@ int main() {
 //        
         epollWait(socket, EPOLL_BOARDCAST_GROUP , result, EPOLL_DEFAULT_FDSIZE, timeout);   
         printf("%d connection ready.\n", result->num);
-        for (int i = 0; i < result->num; i++) {
+        for (i = 0; i < result->num; i++) {
             EpollEvent tmp = result->events[i];
             if (tmp.events & EPOLLIN) {
                 ConnectionWrapper *readyConn = (ConnectionWrapper *)getPtrFromEvent(tmp); 

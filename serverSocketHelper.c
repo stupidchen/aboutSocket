@@ -35,8 +35,7 @@ SocketWrapper *initSocket(char *port, int queue) {
     }
 
     if (EPOLL_STATUS) {
-        int tmpfd0 = epoll_create(EPOLL_DEFAULT_FDSIZE);
-        int tmpfd1 = epoll_create(EPOLL_DEFAULT_FDSIZE);
+        int tmpfd0 = epoll_create(EPOLL_DEFAULT_FDSIZE); int tmpfd1 = epoll_create(EPOLL_DEFAULT_FDSIZE);
         
         if (tmpfd0 == -1 || tmpfd1 == -1) {
             perror("Epoll create");
@@ -133,9 +132,11 @@ void shutdownConnection(ConnectionWrapper *connection, int status) {
 }
 
 void closeSocket(SocketWrapper *socket) {
+    int i;
+
 	close(socket->fd);
     if (EPOLL_STATUS) {
-        for (int i = 0; i < socket->fdGroupNumber; i++) {
+        for (i = 0; i < socket->fdGroupNumber; i++) {
             close(socket->efds[i]);
         }
     }
