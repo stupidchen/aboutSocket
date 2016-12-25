@@ -18,6 +18,22 @@ struct SocketWrapperStruct {
     int fd; 
     struct sockaddr address;
     socklen_t addrlen;
-}
+};
+
+typedef SocketWrapperStruct SocketWrapper;
+
+extern SocketWrapper *initSocket(char *address, char *port);
+
+extern int sendString(SocketWrapper *socket, char *str);
+
+extern int aSendString(SocketWrapper *socket, char *str, void *callback); 
+
+extern int recvString(SocketWrapper *socket, char *str, int len);
+
+extern int aRecvString(SocketWrapper *socket, char *str, void *callback);
+
+extern void closeSocket(SocketWrapper *socket);
 
 #endif
+
+

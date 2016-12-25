@@ -107,8 +107,6 @@ extern int sendString(ConnectionWrapper *connection, char *str);
 
 extern int recvString(ConnectionWrapper *connection, char *str, int len);
 
-extern int sendBinaries(ConnectionWrapper *connection, unsigned char *bytes);
-
 extern char *getPeerName(ConnectionWrapper *connection);
 
 extern char *getHostName(int len);

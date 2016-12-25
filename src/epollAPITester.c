@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <pthread.h>
 
-#include "serverSocketHelper.h"
+#include "include/serverSocketHelper.h"
 
 #define RECVSTRLEN 40 
 

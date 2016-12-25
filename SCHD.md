@@ -42,10 +42,11 @@
 
 * Finish the basic test of epoll API
 * Change the file structure of the project
-* Count the TODO mark; *--2 TODO*
+* Finish the header of client socket helper
+* Count the TODO mark; *--3 TODO*
 
 ### Plan
 
 * Add the change log of whole project
 * Epoll fd group manage(Create, delete)
-* Finish the client socket helper
+* Finish the client socket helper(Four core API: Asynchronous send and recv, chronous send and recv)

@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <pthread.h>
 
-#include "serverSocketHelper.h"
+#include "include/serverSocketHelper.h"
 
 #define RECVSTRLEN 40 
 
@@ -16,32 +16,21 @@ struct argStruct {
 typedef struct argStruct arg;
 
 void *acceptConnections(void *args) {
-    int i;
-
     arg *tmpArg = (arg *)args;
     SocketWrapper *socket = tmpArg->socket;
     ConnectionWrapper *newConnection;
-    unsigned long evnum = EPOLL_DEFAULT_MAX_CONCURRENT_CONNECTIONS;
-    EpollEvents *connev = createEpollEvents(evnum); 
 
-    int timeout = 1000;
     for (;;) {
-        epollWait(socket, EPOLL_LISTEN_GROUP, connev, evnum, timeout);
-        //        pthread_mutex_lock(tmpArg->mutex);
-        //        printf("Start to listen %s\n", str);
-        for (i = 0; i < connev->num; i++) {
-            newConnection = acceptOneConnection(socket);
-            addEpollEvent(socket, EPOLL_BOARDCAST_GROUP, newConnection, createEpollEvent(newConnection, EPOLLIN));
-            printf("Connection %d built.\n", socket->connectionNumber);
-        }
-        //        pthread_mutex_unlock(tmpArg->mutex);
+//        pthread_mutex_lock(tmpArg->mutex);
+//        printf("Start to listen %s\n", str);
+        newConnection = acceptOneConnection(socket);
+//        pthread_mutex_unlock(tmpArg->mutex);
+        printf("Connection %d built.\n", socket->connectionNumber);
         //sendString(newConnection, str);
     }
 }
 
 int main() {
-    int i;
-
     SocketWrapper *socket;
     char *buf = (char *)malloc(sizeof(RECVSTRLEN));
 
@@ -71,32 +60,29 @@ int main() {
     pthread_create(&listenThread, NULL, acceptConnections, tmpArg);
 
     char str[RECVSTRLEN * 2];
-    int timeout = 1000;
-    EpollEvents *result = createEpollEvents(EPOLL_DEFAULT_FDSIZE);
+    struct timeval timeout;
     
     for (;;) {
+        timeout.tv_sec = 3;
+        timeout.tv_usec = 0;
 //        pthread_mutex_lock(tmpArg->mutex);
+        SelectResult *result = selectReadyConnections(socket, &timeout);
 //        pthread_mutex_unlock(tmpArg->mutex);
-//        
-//        
-        epollWait(socket, EPOLL_BOARDCAST_GROUP , result, EPOLL_DEFAULT_FDSIZE, timeout);   
         printf("%d connection ready.\n", result->num);
-        for (i = 0; i < result->num; i++) {
-            EpollEvent tmp = result->events[i];
-            if (tmp.events & EPOLLIN) {
-                ConnectionWrapper *readyConn = (ConnectionWrapper *)getPtrFromEvent(tmp); 
-                int recvLen = recvString(readyConn, buf, RECVSTRLEN);
-                if (strcmp(buf, "exit") == 0 || recvLen == 0) {
-                    printf("Received exit signal.");
-                    sprintf(str, "Bye.");
-                    sendString(readyConn, str);
-                    closeConnection(readyConn);
-                }
-                else {
-                    sprintf(str, "Received %d bytes: %s", recvLen, buf);
-                    sendString(readyConn, str);
-                }
+        ConnectionWrapper *tmp = result->connectionHead;
+        while (tmp != NULL) {
+            int recvLen = recvString(tmp, buf, RECVSTRLEN);
+            if (strcmp(buf, "exit") == 0 || recvLen == 0) {
+                printf("Received exit signal.");
+                sprintf(str, "Bye.");
+                sendString(tmp, str);
+                closeConnection(tmp);
             }
+            else {
+                sprintf(str, "Received %d bytes: %s", recvLen, buf);
+                sendString(tmp, str);
+            }
+            tmp = tmp->nextSelect;
         }
     }
 }

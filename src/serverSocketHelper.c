@@ -99,11 +99,6 @@ int recvString(ConnectionWrapper *connection, char *str, int len) {
     return (int)succLen;
 }
 
-int sendBinaries(ConnectionWrapper *connection, unsigned char *bytes) {
-    //TODO
-    return 0;
-}
-
 //TODO The address is host byte order, but we want network byte order 
 char *getPeerName(ConnectionWrapper *connection) {
     struct sockaddr *thisAddr;
