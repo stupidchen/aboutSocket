@@ -35,3 +35,17 @@
 * Epoll fd group manage(Create, delete)
 * Test the test program of epoll API on puppy
 * Add the change log of whole project
+
+## Dec 25th, 2016
+
+### Work done
+
+* Finish the basic test of epoll API
+* Change the file structure of the project
+* Count the TODO mark; *--2 TODO*
+
+### Plan
+
+* Add the change log of whole project
+* Epoll fd group manage(Create, delete)
+* Finish the client socket helper
