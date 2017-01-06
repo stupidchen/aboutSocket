@@ -3,6 +3,7 @@
 * Basic API of socket (create(), bind(), listen(), accept(), etc.)
 * Basic Wrapper of the file descriptor
 * Basic API of select and epoll
+* Basic API of send & recv on client side.
 * Group division of epoll fd
 
 # Schedule
@@ -50,3 +51,16 @@
 * Add the change log of whole project
 * Epoll fd group manage(Create, delete)
 * Finish the client socket helper(Four core API: Asynchronous send and recv, chronous send and recv)
+
+## Jan 6th, 2017
+
+### Work done
+
+* Finish the send & recv API of client side(except the asynchorouns send and recv base on AIO).
+* Count the TODO mark; *--7 TODO*
+
+### Plan
+
+* Add the change log of whole project
+* Epoll fd group manage(Create, delete)
+* Finish the client socket helper(asynchronous send and recv base on AIO)

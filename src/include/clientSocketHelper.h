@@ -14,23 +14,27 @@
 #include <arpa/inet.h>
 #include <fcntl.h>
 
+#define DEFAULT_BUFFER_SIZE 1024
+
 struct SocketWrapperStruct {
     int fd; 
-    struct sockaddr address;
-    socklen_t addrlen;
+    struct sockaddr_in address;
+
+    char sendbuf[DEFAULT_BUFFER_SIZE];
+    char recvbuf[DEFAULT_BUFFER_SIZE];
 };
 
-typedef SocketWrapperStruct SocketWrapper;
+typedef struct SocketWrapperStruct SocketWrapper;
 
-extern SocketWrapper *initSocket(char *address, char *port);
+extern SocketWrapper *initSocket(char *address, int port);
 
 extern int sendString(SocketWrapper *socket, char *str);
 
 extern int aSendString(SocketWrapper *socket, char *str, void *callback); 
 
-extern int recvString(SocketWrapper *socket, char *str, int len);
+extern char *recvString(SocketWrapper *socket, size_t len);
 
-extern int aRecvString(SocketWrapper *socket, char *str, void *callback);
+extern char *aRecvString(SocketWrapper *socket, size_t len, void *callback);
 
 extern void closeSocket(SocketWrapper *socket);
 

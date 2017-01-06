@@ -23,25 +23,25 @@ int main(void) {
 	client_sockaddr.sin_addr.s_addr = inet_addr(SERVER_ADDR);
 
 	if (connect(client_sockfd, (struct sockaddr *)&client_sockaddr, sizeof(client_sockaddr)) == -1) {
-		perror("connect");
-		exit(1);
+	    perror("connect");
+	    exit(1);
 	}
 
 	char sendbuf[BUFFER_SIZE];
 	char recvbuf[BUFFER_SIZE];
 	while (fgets(sendbuf, sizeof(sendbuf), stdin) != NULL) {
-		send(client_sockfd, sendbuf, strlen(sendbuf), 0);
-		if (strcmp(sendbuf, "exit\n") == 0) {
-			break;
-		}
-		long long len = recv(client_sockfd, recvbuf, sizeof(recvbuf), 0);
+	    send(client_sockfd, sendbuf, strlen(sendbuf), 0);
+        if (strcmp(sendbuf, "exit\n") == 0) {
+            break;
+        }
+        long long len = recv(client_sockfd, recvbuf, sizeof(recvbuf), 0);
         recvbuf[len + 1] = '\0';
-		fputs(recvbuf, stdout);
+        fputs(recvbuf, stdout);
+        
+        memset(sendbuf, 0, sizeof(sendbuf));
+        memset(recvbuf, 0, sizeof(recvbuf));
+    }
 
-		memset(sendbuf, 0, sizeof(sendbuf));
-		memset(recvbuf, 0, sizeof(recvbuf));
-	}
-
-	close(client_sockfd);
+    close(client_sockfd);
 	return 0;
 }
