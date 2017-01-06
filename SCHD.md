@@ -64,3 +64,4 @@
 * Add the change log of whole project
 * Epoll fd group manage(Create, delete)
 * Finish the client socket helper(asynchronous send and recv base on AIO)
+* Figure out reason of the redundant character of received message and fixed it.
