@@ -26,16 +26,12 @@ void *acceptConnections(void *args) {
 
     int timeout = 1000;
     for (;;) {
-        epollWait(socket, EPOLL_LISTEN_GROUP, connev, evnum, timeout);
-        //        pthread_mutex_lock(tmpArg->mutex);
-        //        printf("Start to listen %s\n", str);
+        epollWait(socket, EPOLL_LISTEN_GROUP, connev, (int)evnum, timeout);
         for (i = 0; i < connev->num; i++) {
             newConnection = acceptOneConnection(socket);
             addEpollEvent(socket, EPOLL_BOARDCAST_GROUP, newConnection, createEpollEvent(newConnection, EPOLLIN));
             printf("Connection %d built.\n", socket->connectionNumber);
         }
-        //        pthread_mutex_unlock(tmpArg->mutex);
-        //sendString(newConnection, str);
     }
 }
 
@@ -80,7 +76,6 @@ int main() {
 //        
 //        
         epollWait(socket, EPOLL_BOARDCAST_GROUP , result, EPOLL_DEFAULT_FDSIZE, timeout);   
-        printf("%d connection ready.\n", result->num);
         for (i = 0; i < result->num; i++) {
             EpollEvent tmp = result->events[i];
             if (tmp.events & EPOLLIN) {
@@ -93,6 +88,7 @@ int main() {
                     closeConnection(readyConn);
                 }
                 else {
+                    printf("Fd %d: %s", readyConn->fd, str);
                     sprintf(str, "Received %d bytes: %s", recvLen, buf);
                     sendString(readyConn, str);
                 }
