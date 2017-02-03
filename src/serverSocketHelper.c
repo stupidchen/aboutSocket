@@ -95,7 +95,7 @@ int sendString(ConnectionWrapper *connection, char *str) {
 int recvString(ConnectionWrapper *connection, char *str, int len) {
     ssize_t succLen;
     succLen = recv(connection->fd, str, (size_t)len, 0);
-    str[succLen + 1] = '\0';
+    str[succLen] = '\0';
     return (int)succLen;
 }
 

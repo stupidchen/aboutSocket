@@ -88,7 +88,6 @@ int main() {
                     closeConnection(readyConn);
                 }
                 else {
-                    printf("Fd %d: %s", readyConn->fd, str);
                     sprintf(str, "Received %d bytes: %s", recvLen, buf);
                     sendString(readyConn, str);
                 }

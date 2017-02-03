@@ -9,16 +9,18 @@ int main(void) {
 
     char sendbuf[BUFFER_SIZE];
     char *recvbuf;
-    memset(sendbuf, 0, sizeof(sendbuf));
 
+    memset(sendbuf, 0, sizeof(sendbuf));
     int len;
-    while (fgets(sendbuf, BUFFER_SIZE, stdin) != NULL) {
+    while (1) {
+        scanf("%s", sendbuf);
+        sendbuf[strlen(sendbuf)] = '\0';
         len = sendString(sw, sendbuf);
-        if (strcmp(sendbuf, "exit\n") == 0) {
+        if (strcmp(sendbuf, "exit") == 0) {
             break;
         }
         recvbuf = recvString(sw, 0); 
-        printf("%s", recvbuf);
+        printf("%s\n", recvbuf);
          
         memset(sendbuf, 0, sizeof(sendbuf));
         free(recvbuf);
