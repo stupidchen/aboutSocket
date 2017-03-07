@@ -56,7 +56,7 @@
 
 ### Work done
 
-* Finish the send & recv API of client side(except the asynchorouns send and recv base on AIO).
+* Finish the send & recv API of client side(except the asynchorouns send and recv base on AIO)
 * Count the TODO mark; *--7 TODO*
 
 ### Plan
@@ -64,4 +64,16 @@
 * Add the change log of whole project
 * Epoll fd group manage(Create, delete)
 * Finish the client socket helper(asynchronous send and recv base on AIO)
-* Figure out reason of the redundant character of received message and fixed it.
+* Figure out reason of the redundant character of received message and fixed it
+
+## Feb 3rd, 2017
+
+### Work done
+
+* Find the reason of redundant character(fgets bug) and fixed it
+
+### Plan
+
+* Epoll fd group manage(Create, delete)
+* Finish the client socket helper(asynchronous send and recv base on AIO, or use threadpool)
+* Add the change log of whole project

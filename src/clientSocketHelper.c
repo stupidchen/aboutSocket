@@ -21,9 +21,8 @@ extern SocketWrapper *initSocket(char *address, int port) {
     return sw;
 }
 
-//Check: The return value of send() is ssize_t(aka long)
 //Block 
-extern int sendString(SocketWrapper *socket, char *str) {
+extern long sendString(SocketWrapper *socket, char *str) {
     return send(socket->fd, str, strlen(str), 0);
 }
 
@@ -42,7 +41,6 @@ extern char *recvString(SocketWrapper *socket, size_t len) {
 
     recvbuf = (char *)malloc(sizeof(char) * len);
     recvlen = recv(socket->fd, recvbuf, len, 0);
-    recvbuf[recvlen] = '\0';
     return recvbuf;
 }
 

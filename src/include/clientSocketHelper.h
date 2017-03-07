@@ -28,7 +28,7 @@ typedef struct SocketWrapperStruct SocketWrapper;
 
 extern SocketWrapper *initSocket(char *address, int port);
 
-extern int sendString(SocketWrapper *socket, char *str);
+extern long sendString(SocketWrapper *socket, char *str);
 
 extern int aSendString(SocketWrapper *socket, char *str, void *callback); 
 
